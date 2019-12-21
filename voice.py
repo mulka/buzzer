@@ -1,14 +1,12 @@
 import os
-import urllib
 import time
-import json
 import base64
 from base64 import b64decode
 from urllib import request, parse
 from urllib.parse import parse_qsl
 
 import boto3
-import twilio
+
 
 def decrypt(value):
     bytes = boto3.client('kms').decrypt(CiphertextBlob=b64decode(value))['Plaintext']
@@ -20,6 +18,7 @@ TWILIO_ACCOUNT_SID = decrypt(os.environ.get("TWILIO_ACCOUNT_SID"))
 TWILIO_AUTH_TOKEN = decrypt(os.environ.get("TWILIO_AUTH_TOKEN"))
 MY_NUMBER = decrypt(os.environ.get("MY_NUMBER"))
 TWILIO_NUMBER = decrypt(os.environ.get("TWILIO_NUMBER"))
+
 
 def send_sms(to_number, from_number, body):
     # insert Twilio Account SID into the REST API URL

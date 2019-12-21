@@ -3,6 +3,7 @@ from urllib.parse import parse_qsl
 
 import boto3
 
+
 def lambda_handler(event, context):
 
     params = dict(parse_qsl(event['body']))
@@ -10,11 +11,11 @@ def lambda_handler(event, context):
     text = params['Body']
     
     try:
-        mins = int(text)
-    except:
-        mins = 0
+        minutes = int(text)
+    except ValueError:
+        minutes = 0
         
-    if 5 <= mins <= 60:
+    if 5 <= minutes <= 60:
         dynamodb = boto3.resource("dynamodb")
         table = dynamodb.Table('apartment-buzzer-auto-buzz')
         response = table.update_item(
@@ -26,10 +27,10 @@ def lambda_handler(event, context):
                 '#until': 'until'
             },
             ExpressionAttributeValues={
-                ':until': int(time.time() + 60*mins)
+                ':until': int(time.time() + 60*minutes)
             }
         )
-        message = f'Door will be open for the next {mins} minutes'
+        message = f'Door will be open for the next {minutes} minutes'
     else:
         message = 'Please type a number between 5 and 60'
     
