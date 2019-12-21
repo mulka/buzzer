@@ -1,7 +1,7 @@
-import time
 from urllib.parse import parse_qsl
 
-import boto3
+
+from utils import set_auto_buzz_config
 
 
 def lambda_handler(event, context):
@@ -16,20 +16,7 @@ def lambda_handler(event, context):
         minutes = 0
         
     if 5 <= minutes <= 60:
-        dynamodb = boto3.resource("dynamodb")
-        table = dynamodb.Table('apartment-buzzer-auto-buzz')
-        response = table.update_item(
-            Key={
-                'key': 'auto-buzz'
-            },
-            UpdateExpression='SET #until = :until',
-            ExpressionAttributeNames={
-                '#until': 'until'
-            },
-            ExpressionAttributeValues={
-                ':until': int(time.time() + 60*minutes)
-            }
-        )
+        set_auto_buzz_config(minutes)
         message = f'Door will be open for the next {minutes} minutes'
     else:
         message = 'Please type a number between 5 and 60'

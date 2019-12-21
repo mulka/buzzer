@@ -4,14 +4,30 @@ import unittest
 import boto3
 
 
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table('apartment-buzzer-auto-buzz')
+
+
 def get_auto_buzz_times():
     return []
 
 
-def get_auto_buzz_config():
-    dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table('apartment-buzzer-auto-buzz')
+def set_auto_buzz_config(minutes):
+    response = table.update_item(
+        Key={
+            'key': 'auto-buzz'
+        },
+        UpdateExpression='SET #until = :until',
+        ExpressionAttributeNames={
+            '#until': 'until'
+        },
+        ExpressionAttributeValues={
+            ':until': int(time.time() + 60 * minutes)
+        }
+    )
 
+
+def get_auto_buzz_config():
     response = table.get_item(
         Key={
             'key': 'auto-buzz'
