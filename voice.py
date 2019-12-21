@@ -1,11 +1,12 @@
 import os
-import time
 import base64
 from base64 import b64decode
 from urllib import request, parse
 from urllib.parse import parse_qsl
 
 import boto3
+
+from utils import should_auto_buzz
 
 
 def decrypt(value):
@@ -67,28 +68,7 @@ def lambda_handler(event, context):
 
 
 def get_twiml_response_body():
-    dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table('apartment-buzzer-auto-buzz')
-
-    response = table.get_item(
-        Key={
-            'key': 'auto-buzz'
-        }
-    )
-    
-    auto_buzz = False
-
-    try:
-        item = response['Item']
-        value = item['value']
-        until = item['until']
-        
-        if value == 'true' and until > time.time():
-            auto_buzz = True
-    except KeyError:
-        pass
-
-    if auto_buzz:
+    if should_auto_buzz():
         body = """
     <Play digits="9"></Play>
         """
