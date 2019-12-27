@@ -1,7 +1,38 @@
+from datetime import datetime, timedelta
 from urllib.parse import parse_qsl
+import unittest
+
+from pytz import timezone
+
+from utils import get_now, parse_minutes, parse_start_end_times, set_auto_buzz_config, add_auto_buzz_time, get_auto_buzz_times
+from exceptions import BuzzerException, NotANumberException
 
 
-from utils import set_auto_buzz_config
+def format_time(t):
+    return t.strftime('%-I %p')
+
+
+def handle_sms(text):
+    now = get_now()
+
+    try:
+        try:
+            minutes = parse_minutes(text)
+
+            add_auto_buzz_time(now, now + timedelta(minutes=minutes))
+            set_auto_buzz_config(minutes)
+            message = f'Door will be open for the next {minutes} minutes'
+
+        except NotANumberException:
+            start, end = parse_start_end_times(text, now)
+
+            add_auto_buzz_time(start, end)
+            message = f'Door will be open between {format_time(start)} and {format_time(end)}'
+
+    except BuzzerException as ex:
+        message = str(ex)
+
+    return message
 
 
 def lambda_handler(event, context):
@@ -10,16 +41,7 @@ def lambda_handler(event, context):
     
     text = params['Body']
     
-    try:
-        minutes = int(text)
-    except ValueError:
-        minutes = 0
-        
-    if 5 <= minutes <= 60:
-        set_auto_buzz_config(minutes)
-        message = f'Door will be open for the next {minutes} minutes'
-    else:
-        message = 'Please type a number between 5 and 60'
+    message = handle_sms(text)
     
     body = '<Response>'
     body += '<Message>' + message + '</Message>'
@@ -30,3 +52,10 @@ def lambda_handler(event, context):
         'body': body
     }
     return response
+
+
+class HandleSMSTestCase(unittest.TestCase):
+    def test_(self):
+        print(handle_sms('6-6'))
+        # print(handle_sms('10'))
+        print(get_auto_buzz_times())

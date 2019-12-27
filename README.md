@@ -17,7 +17,7 @@ Configure a list of phone numbers which will be forwarded to.
 
 If you want to let someone in within the next hour, just send a text message (SMS) to the Twilio number with the number of minutes (between 5 and 60) that you want Auto Buzz to be active for.
 
-
+If you want to activate Auto Buzz in the future, you can send a time range. You can set up Auto Buzz up to 12 hours in the future. For example, if it is past 6pm, sending "6-8", would activate Auto Buzz from 6am-8am the next morning.
 
 
 
