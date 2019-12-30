@@ -1,14 +1,13 @@
 import os
-import urllib
-import time
-import json
 import base64
 from base64 import b64decode
 from urllib import request, parse
 from urllib.parse import parse_qsl
 
 import boto3
-import twilio
+
+from utils import should_auto_buzz
+
 
 def decrypt(value):
     bytes = boto3.client('kms').decrypt(CiphertextBlob=b64decode(value))['Plaintext']
@@ -20,6 +19,7 @@ TWILIO_ACCOUNT_SID = decrypt(os.environ.get("TWILIO_ACCOUNT_SID"))
 TWILIO_AUTH_TOKEN = decrypt(os.environ.get("TWILIO_AUTH_TOKEN"))
 MY_NUMBER = decrypt(os.environ.get("MY_NUMBER"))
 TWILIO_NUMBER = decrypt(os.environ.get("TWILIO_NUMBER"))
+
 
 def send_sms(to_number, from_number, body):
     # insert Twilio Account SID into the REST API URL
@@ -68,28 +68,7 @@ def lambda_handler(event, context):
 
 
 def get_twiml_response_body():
-    dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table('apartment-buzzer-auto-buzz')
-
-    response = table.get_item(
-        Key={
-            'key': 'auto-buzz'
-        }
-    )
-    
-    auto_buzz = False
-
-    try:
-        item = response['Item']
-        value = item['value']
-        until = item['until']
-        
-        if value == 'true' and until > time.time():
-            auto_buzz = True
-    except KeyError:
-        pass
-
-    if auto_buzz:
+    if should_auto_buzz():
         body = """
     <Play digits="9"></Play>
         """
